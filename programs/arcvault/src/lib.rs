@@ -65,7 +65,8 @@ pub mod arcvault {
             ctx.accounts,
             computation_offset,
             args,
-            vec![AccessCallback::callback_ix(
+            // Correction 1: Updated struct name to match instruction
+            vec![VerifyAndReleaseCallback::callback_ix(
                 computation_offset,
                 &ctx.accounts.mxe_account,
                 &[]
@@ -78,7 +79,8 @@ pub mod arcvault {
 
     #[arcium_callback(encrypted_ix = "verify_and_release")]
     pub fn verify_and_release_callback(
-        ctx: Context<AccessCallback>,
+        // Correction 2: Updated Context type
+        ctx: Context<VerifyAndReleaseCallback>,
         output: SignedComputationOutputs<VerifyAndReleaseOutput>,
     ) -> Result<()> {
         let o = match output.verify_output(&ctx.accounts.cluster_account, &ctx.accounts.computation_account) {
@@ -134,6 +136,7 @@ pub struct DataVault {
     pub enc_content_key: [u8; 32], // The "Ghost Key"
 }
 
+// Correction 3: Added missing macro
 #[queue_computation_accounts("verify_and_release", payer)]
 #[derive(Accounts)]
 #[instruction(computation_offset: u64)]
@@ -167,9 +170,10 @@ pub struct RequestAccess<'info> {
     pub arcium_program: Program<'info, Arcium>,
 }
 
+// Correction 4: Renamed Struct
 #[callback_accounts("verify_and_release")]
 #[derive(Accounts)]
-pub struct AccessCallback<'info> {
+pub struct VerifyAndReleaseCallback<'info> {
     pub arcium_program: Program<'info, Arcium>,
     #[account(address = derive_comp_def_pda!(COMP_DEF_OFFSET_ACCESS))]
     pub comp_def_account: Account<'info, ComputationDefinitionAccount>,

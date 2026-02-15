@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ArcVault | 去中心化机密数据保险箱</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono&display=swap');
+        
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #09090b;
+            color: #e4e4e7;
+        }
+
+        .mono { font-family: 'JetBrains+Mono', monospace; }
+
+        .glass-card {
+            background: rgba(24, 24, 27, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .encrypted-content {
+            filter: blur(12px) grayscale(0.8);
+            transition: all 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+        }
+
+        .decrypted-content {
+            filter: blur(0) grayscale(0);
+        }
+
+        .lock-overlay {
+            background: rgba(0, 0, 0, 0.6);
+            transition: opacity 0.5s ease;
+        }
+
+        .key-fragment {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #27272a; border-radius: 10px; }
+
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center py-12 px-6 bg-[url('https://assets.arcium.com/grid.svg')] bg-fixed bg-cover">
+
+    <!-- Header -->
+    <header class="w-full max-w-5xl flex justify-between items-center mb-16">
+        <div class="flex items-center gap-4">
+            <div class="bg-orange-600 p-2.5 rounded-2xl shadow-xl shadow-orange-500/20">
+                <i class="fas fa-vault text-white text-2xl"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl font-black tracking-tighter text-white">ArcVault</h1>
+                <p class="text-[10px] text-slate-500 uppercase tracking-[0.2em] font-bold">Confidential Data Protocol</p>
+            </div>
+        </div>
+        <div class="flex flex-col items-end">
+            <span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Storage Layer</span>
+            <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                <span class="text-xs font-bold text-slate-300">IPFS Gateway Connected</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-12 gap-10">
+        
+        <!-- File Viewer (Left) -->
+        <div class="lg:col-span-7">
+            <div class="glass-card rounded-[2.5rem] p-2 relative overflow-hidden group border-t-4 border-orange-500">
+                
+                <!-- The Content -->
+                <div class="relative rounded-[2rem] overflow-hidden aspect-video bg-black" id="contentContainer">
+                    <img src="https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=2832&auto=format&fit=crop" 
+                         class="w-full h-full object-cover encrypted-content" id="protectedImage" alt="Secret Blueprint">
+                    
+                    <!-- Lock Overlay -->
+                    <div class="absolute inset-0 lock-overlay flex flex-col items-center justify-center z-10" id="lockScreen">
+                        <div class="w-20 h-20 bg-slate-900/80 rounded-full flex items-center justify-center border border-slate-700 mb-4 backdrop-blur-sm">
+                            <i class="fas fa-lock text-3xl text-orange-500" id="lockIcon"></i>
+                        </div>
+                        <h3 class="text-white font-bold text-lg">Encrypted Content</h3>
+                        <p class="text-xs text-slate-400 font-mono mt-1">CID: QmX7...9z2A</p>
+                    </div>
+                </div>
+
+                <!-- File Info -->
+                <div class="p-6">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h2 class="text-xl font-bold text-white">Project Genesis: Technical Blueprint</h2>
+                            <p class="text-xs text-slate-500 mt-1">PDF Document • 24.5 MB • Uploaded 2h ago</p>
+                        </div>
+                        <div class="bg-orange-500/10 border border-orange-500/20 px-3 py-1 rounded-lg">
+                            <span class="text-[10px] font-bold text-orange-400 uppercase tracking-wider">Restricted</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Access Controls (Right) -->
+        <div class="lg:col-span-5 flex flex-col gap-6">
+            
+            <!-- Policy Card -->
+            <div class="glass-card rounded-3xl p-8 space-y-6">
+                <div class="flex items-center gap-3 mb-2">
+                    <i class="fas fa-file-contract text-slate-400"></i>
+                    <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest">Access Policy (Encrypted)</h3>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center p-4 bg-slate-900/50 rounded-xl border border-slate-800">
+                        <span class="text-sm font-bold text-slate-300">Required Payment</span>
+                        <span class="text-sm font-mono font-bold text-orange-400">50.00 USDC</span>
+                    </div>
+                    <div class="flex justify-between items-center p-4 bg-slate-900/50 rounded-xl border border-slate-800">
+                        <span class="text-sm font-bold text-slate-300">Expiration</span>
+                        <span class="text-sm font-mono text-slate-400">Dec 31, 2026</span>
+                    </div>
+                </div>
+
+                <button id="unlockBtn" class="w-full bg-white text-slate-950 font-black py-4 rounded-xl hover:bg-orange-50 transition active:scale-[0.95] flex items-center justify-center gap-2 shadow-xl shadow-orange-500/10">
+                    <i class="fas fa-key" id="btnIcon"></i> <span id="btnText">REQUEST ACCESS (PAY)</span>
+                </button>
+            </div>
+
+            <!-- Terminal -->
+            <div class="glass-card rounded-3xl p-6 flex-1 flex flex-col min-h-[250px]">
+                <div class="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-terminal text-xs text-slate-500"></i>
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">ArcVault-CLI</span>
+                    </div>
+                    <span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+                </div>
+                <div id="logs" class="flex-1 overflow-y-auto custom-scrollbar font-mono text-[10px] text-slate-400 space-y-2">
+                    <div>[SYS] Vault initialized. Key split into 4 shares.</div>
+                    <div>[SYS] Policy engine active. Waiting for request...</div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="mt-16 text-slate-700 text-[10px] uppercase tracking-[0.5em] font-black italic">
+        ArcVault Key Management Protocol &copy; 2026
+    </footer>
+
+    <script>
+        const unlockBtn = document.getElementById('unlockBtn');
+        const btnText = document.getElementById('btnText');
+        const btnIcon = document.getElementById('btnIcon');
+        const logs = document.getElementById('logs');
+        
+        const protectedImage = document.getElementById('protectedImage');
+        const lockScreen = document.getElementById('lockScreen');
+        const lockIcon = document.getElementById('lockIcon');
+
+        function addLog(msg, color='text-slate-400') {
+            const div = document.createElement('div');
+            div.className = color;
+            const time = new Date().toLocaleTimeString('en-US',{hour12:false});
+            div.innerText = `> [${time}] ${msg}`;
+            logs.prepend(div);
+        }
+
+        const steps = [
+            "Encrypting payment proof (50 USDC)...",
+            "Encrypting timestamp...",
+            "Broadcasting request to Arcium MXE...",
+            "MPC: Verifying Payment >= Price...",
+            "MPC: Verifying Time < Expiry...",
+            "Condition Met: Reconstructing Ghost Key..."
+        ];
+
+        unlockBtn.addEventListener('click', () => {
+            unlockBtn.disabled = true;
+            btnText.innerText = "VERIFYING...";
+            btnIcon.className = "fas fa-spinner fa-spin";
+
+            addLog("Initiating Access Request...", "text-orange-400");
+
+            let i = 0;
+            const interval = setInterval(() => {
+                addLog(steps[i]);
+                i++;
+                if (i >= steps.length) {
+                    clearInterval(interval);
+                    setTimeout(grantAccess, 800);
+                }
+            }, 800);
+        });
+
+        function grantAccess() {
+            addLog("✅ ACCESS GRANTED. Key delivered to client.", "text-green-400 font-bold");
+            addLog("Decrypting content stream...", "text-blue-400");
+
+            // Visual Unlock
+            lockIcon.className = "fas fa-unlock text-3xl text-green-500";
+            lockScreen.style.opacity = '0';
+            setTimeout(() => {
+                lockScreen.style.display = 'none';
+                protectedImage.classList.remove('encrypted-content');
+                protectedImage.classList.add('decrypted-content');
+                
+                btnText.innerText = "ACCESS GRANTED";
+                btnIcon.className = "fas fa-check";
+                unlockBtn.className = "w-full bg-green-600 text-white font-black py-4 rounded-xl cursor-default flex items-center justify-center gap-2 shadow-xl";
+            }, 500);
+        }
+    </script>
+</body>
+</html>
